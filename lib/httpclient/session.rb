@@ -881,10 +881,15 @@ class HTTPClient
             initial_line = @socket.gets("\n")
             if initial_line.nil?
               close
+              Rails.logger.warn 'httpclient: initial_line.nil? true'
               raise KeepAliveDisconnected.new(self)
             end
-          rescue Errno::ECONNABORTED, Errno::ECONNRESET, Errno::EPIPE, IOError
+          rescue Errno::ECONNABORTED, Errno::ECONNRESET, Errno::EPIPE, IOError => ex
             # JRuby can raise IOError instead of ECONNRESET for now
+            Rails.logger.fatal 'httpclient: hard error'
+            Rails.logger.fatal "httpclient: message - #{ex.inspect}"
+            Rails.logger.fatal "httpclient: cause - #{ex.cause}"
+            Rails.logger.fatal "httpclient: backtrace - #{ex.backtrace.join("\n")}"
             close
             raise KeepAliveDisconnected.new(self)
           end
